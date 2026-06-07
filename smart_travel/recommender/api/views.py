@@ -11,7 +11,17 @@ from collections import Counter
 import math
 
 from recommender.services.weather_service import get_weather
-from recommender.services.places_service import get_city_coords,get_geoapify_places
+from recommender.services.places_service import (
+    get_city_coords,
+    get_geoapify_places,
+    get_nearest_airports,
+    get_nearest_hospitals,
+    get_nearest_police_stations,
+    get_nearest_fire_stations,
+    get_nearest_ambulance_services,
+)
+
+
 from recommender.services.ai_service import generate_itinerary
 from recommender.services.place_ranker import rank_places,personalize_score
 
@@ -19,46 +29,35 @@ from recommender.utils import generate_cache_key
 
 from django.core.cache import cache
 
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer, UserSerializer
 from django.contrib.auth.models import User
 
+
+
+
 class RegisterView(APIView):
+    """Create user account. JWT is obtained via /api/token/ using simplejwt."""
     permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                "user": UserSerializer(user).data,
-                "token": token.key,
-                "message": "User registered successfully"
-            }, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "user": UserSerializer(user).data,
+                    "message": "User registered successfully. Login via /api/token/ to get JWT.",
+                },
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
-
-class LoginView(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user': UserSerializer(user).data
-        })
-    
-
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
 class RecommendTripView(APIView):
-    # Added TokenAuthentication so React Token works here
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
-    permission_classes = [AllowAny] 
+    permission_classes = [AllowAny]
+
+
 
     def post(self, request):
         serializer = RecommendTripSerializer(data=request.data)
@@ -94,10 +93,30 @@ class RecommendTripView(APIView):
             lat, lon = get_city_coords(destination)
             
             places = []
+            emergency_places = {
+                "airports": [],
+                "hospitals": [],
+                "police_stations": [],
+                "fire_stations": [],
+                "ambulance_services": [],
+            }
+
             if lat and lon:
                 places = get_geoapify_places(lat, lon)
 
+                # Use a larger radius to improve accuracy around city clusters
+                emergency_places = {
+                    "airports": get_nearest_airports(lat, lon, limit=2, radius=100000),
+                    "hospitals": get_nearest_hospitals(lat, lon, limit=2, radius=100000),
+                    "police_stations": get_nearest_police_stations(lat, lon, limit=2, radius=100000),
+                    "fire_stations": get_nearest_fire_stations(lat, lon, limit=2, radius=100000),
+                    "ambulance_services": get_nearest_ambulance_services(lat, lon, limit=2, radius=100000),
+                }
+
+
+
             ranked_places = rank_places(places)
+
             itinerary = generate_itinerary(
                 destination=destination,
                 weather=weather_info,
@@ -111,8 +130,10 @@ class RecommendTripView(APIView):
                 "weather": weather_info,
                 "places": ranked_places,
                 "itinerary": itinerary,
+                "emergency_places": emergency_places,
                 "input": data
             }
+
 
             # 5. Save to Cache (Now inside the IF block)
             cache.set(cache_key, final_response)

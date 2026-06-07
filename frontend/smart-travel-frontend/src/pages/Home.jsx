@@ -49,11 +49,25 @@ export default function Home() {
 
   const navigate = useNavigate();
 
+  // YYYY-MM-DD in local time (works well with <input type="date" />)
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const cleanInterests = formData.interests.split(',').map(i => i.trim()).filter(i => i !== '');
     if (cleanInterests.length === 0) {
       alert('Please enter at least one interest (e.g., Shopping, Beach).');
+      return;
+    }
+
+    // Date validation (frontend)
+    if (formData.start_date < todayStr) {
+      alert('Start date cannot be in the past.');
+      return;
+    }
+    if (formData.end_date < formData.start_date) {
+      alert('End date must be the same as or after the start date.');
       return;
     }
 
@@ -135,6 +149,7 @@ export default function Home() {
                 <label style={labelStyle}>Start Date *</label>
                 <input
                   type="date"
+                  min={todayStr}
                   style={getFieldStyle('start_date')}
                   value={formData.start_date}
                   onFocus={() => setFocusedField('start_date')}
@@ -147,6 +162,7 @@ export default function Home() {
                 <label style={labelStyle}>End Date *</label>
                 <input
                   type="date"
+                  min={formData.start_date || todayStr}
                   style={getFieldStyle('end_date')}
                   value={formData.end_date}
                   onFocus={() => setFocusedField('end_date')}

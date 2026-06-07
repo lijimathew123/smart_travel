@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, Thermometer, Clock, Star } from 'lucide-react';
+import EmergencyContactCard from '../components/EmergencyContactCard';
+
 
 const glassCard = {
   background: 'rgba(255,255,255,0.04)',
@@ -288,6 +290,117 @@ export default function SearchResultsPage() {
             </div>
           </div>
 
+          {/* Emergency Contacts */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
+              <span
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '10px',
+                  background: 'rgba(239,68,68,0.15)',
+                  border: '1px solid rgba(239,68,68,0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fecaca',
+                  fontWeight: 900,
+                }}
+              >
+                !
+              </span>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fee2e2', margin: 0 }}>
+                Emergency Contacts Near You
+              </h2>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fbbf24', margin: '0 0 0.75rem' }}>
+                  Airports (up to 2)
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {result.emergency_places?.airports?.map((place, index) => (
+                    <div key={index}>
+                      {/* Lazy import avoided; keep JSX simple */}
+                      {/* eslint-disable-next-line import/no-named-as-default */}
+                      {/* EmergencyContactCard is imported below */}
+                      <EmergencyContactCard place={place} index={index} />
+                    </div>
+                  ))}
+                  {(!result.emergency_places?.airports || result.emergency_places.airports.length === 0) && (
+                    <div style={{ color: 'rgba(148,163,184,0.75)' }}>No nearby airports found.</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ef4444', margin: '0 0 0.75rem' }}>
+                  Hospitals (up to 2)
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {result.emergency_places?.hospitals?.map((place, index) => (
+                    <div key={index}>
+                      <EmergencyContactCard place={place} index={index} />
+                    </div>
+                  ))}
+                  {(!result.emergency_places?.hospitals || result.emergency_places.hospitals.length === 0) && (
+                    <div style={{ color: 'rgba(148,163,184,0.75)' }}>No nearby hospitals found.</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#f97316', margin: '0 0 0.75rem' }}>
+                  Police Stations (up to 2)
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {result.emergency_places?.police_stations?.map((place, index) => (
+                    <div key={index}>
+                      <EmergencyContactCard place={place} index={index} />
+                    </div>
+                  ))}
+                  {(!result.emergency_places?.police_stations || result.emergency_places.police_stations.length === 0) && (
+                    <div style={{ color: 'rgba(148,163,184,0.75)' }}>No nearby police stations found.</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fb7185', margin: '0 0 0.75rem' }}>
+                  Fire Stations (up to 2)
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {result.emergency_places?.fire_stations?.map((place, index) => (
+                    <div key={index}>
+                      <EmergencyContactCard place={place} index={index} />
+                    </div>
+                  ))}
+                  {(!result.emergency_places?.fire_stations || result.emergency_places.fire_stations.length === 0) && (
+                    <div style={{ color: 'rgba(148,163,184,0.75)' }}>No nearby fire stations found.</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#60a5fa', margin: '0 0 0.75rem' }}>
+                  Ambulance Services (up to 2)
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {result.emergency_places?.ambulance_services?.map((place, index) => (
+                    <div key={index}>
+                      <EmergencyContactCard place={place} index={index} />
+                    </div>
+                  ))}
+                  {(!result.emergency_places?.ambulance_services || result.emergency_places.ambulance_services.length === 0) && (
+                    <div style={{ color: 'rgba(148,163,184,0.75)' }}>No nearby ambulance services found.</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+
           {/* Places (Must Visit Places) */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
@@ -378,6 +491,7 @@ export default function SearchResultsPage() {
             </div>
           </div>
         </div>
+
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
