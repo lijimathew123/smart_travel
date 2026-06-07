@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { travelService } from '../services/api';
 import { Sparkles, MapPin, Wind, Thermometer, Clock, Star, ChevronRight } from 'lucide-react';
+import DateRangePicker from '../components/DateRangePicker';
+
 
 
 const glassCard = {
@@ -145,32 +147,18 @@ export default function Home() {
                   required
                 />
               </div>
-              <div>
-                <label style={labelStyle}>Start Date *</label>
-                <input
-                  type="date"
-                  min={todayStr}
-                  style={getFieldStyle('start_date')}
-                  value={formData.start_date}
-                  onFocus={() => setFocusedField('start_date')}
-                  onBlur={() => setFocusedField(null)}
-                  onChange={e => setFormData({ ...formData, start_date: e.target.value })}
-                  required
+              <div style={{ gridColumn: 'span 2' }}>
+                <label style={labelStyle}>Dates *</label>
+                <DateRangePicker
+                  startDate={formData.start_date}
+                  endDate={formData.end_date}
+                  disabledBeforeToday
+                  onChange={({ startDate, endDate }) =>
+                    setFormData((prev) => ({ ...prev, start_date: startDate, end_date: endDate }))
+                  }
                 />
               </div>
-              <div>
-                <label style={labelStyle}>End Date *</label>
-                <input
-                  type="date"
-                  min={formData.start_date || todayStr}
-                  style={getFieldStyle('end_date')}
-                  value={formData.end_date}
-                  onFocus={() => setFocusedField('end_date')}
-                  onBlur={() => setFocusedField(null)}
-                  onChange={e => setFormData({ ...formData, end_date: e.target.value })}
-                  required
-                />
-              </div>
+
               <div>
                 <label style={labelStyle}>Budget *</label>
                 <select
@@ -375,7 +363,31 @@ export default function Home() {
           </div>
         )}
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } } input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Base date input */
+        input[type="date"]{
+          color-scheme: dark;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator{
+          filter: invert(0.7) hue-rotate(180deg);
+          opacity: 0.95;
+        }
+
+        /* Firefox */
+        input[type="date"]{
+          -moz-appearance: textfield;
+          background-color: rgba(255,255,255,0.04);
+        }
+
+        /* Custom calendar popup styling (best-effort, browser dependent) */
+        input[type="date"]{
+          padding-right: 40px;
+        }
+      `}</style>
+
     </div>
   );
 }

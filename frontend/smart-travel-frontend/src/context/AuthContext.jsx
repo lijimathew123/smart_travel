@@ -6,10 +6,42 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
+  // Keep auth state in sync with localStorage.
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) setUser(JSON.parse(savedUser));
+    const savedToken = localStorage.getItem('token');
+
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+
+    setToken(savedToken);
+
+    const onStorage = (e) => {
+      if (e.key === 'token') setToken(e.newValue);
+      if (e.key === 'user') {
+        if (!e.newValue) setUser(null);
+        else {
+          try {
+            setUser(JSON.parse(e.newValue));
+          } catch {
+            setUser(null);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
+
+
 
   const login = (userData, userToken) => {
     setUser(userData);
@@ -33,3 +65,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+
