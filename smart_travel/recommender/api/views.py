@@ -14,15 +14,9 @@ from recommender.services.weather_service import get_weather
 from recommender.services.places_service import (
     get_city_coords,
     get_geoapify_places,
-    get_nearest_airports,
-    get_nearest_hospitals,
-    get_nearest_police_stations,
-    get_nearest_fire_stations,
-    get_nearest_ambulance_services,
 )
 
-
-from recommender.services.ai_service import generate_itinerary
+from recommender.services.ai_service import generate_itinerary, generate_emergency_place
 from recommender.services.place_ranker import rank_places,personalize_score
 
 from recommender.utils import generate_cache_key
@@ -104,18 +98,16 @@ class RecommendTripView(APIView):
             if lat and lon:
                 places = get_geoapify_places(lat, lon)
 
-                # Use a larger radius to improve accuracy around city clusters
-                emergency_places = {
-                    "airports": get_nearest_airports(lat, lon, limit=2, radius=100000),
-                    "hospitals": get_nearest_hospitals(lat, lon, limit=2, radius=100000),
-                    "police_stations": get_nearest_police_stations(lat, lon, limit=2, radius=100000),
-                    "fire_stations": get_nearest_fire_stations(lat, lon, limit=2, radius=100000),
-                    "ambulance_services": get_nearest_ambulance_services(lat, lon, limit=2, radius=100000),
-                }
-
-
+                emergency_places = generate_emergency_places(
+                    destination=destination,
+                    lat=lat,
+                    lon=lon,
+                    user_input=data,
+                    limit=2,
+                )
 
             ranked_places = rank_places(places)
+
 
             itinerary = generate_itinerary(
                 destination=destination,
