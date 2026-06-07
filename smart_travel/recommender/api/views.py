@@ -16,7 +16,8 @@ from recommender.services.places_service import (
     get_geoapify_places,
 )
 
-from recommender.services.ai_service import generate_itinerary, generate_emergency_place
+from recommender.services.ai_service import generate_itinerary, generate_emergency_places
+
 from recommender.services.place_ranker import rank_places,personalize_score
 
 from recommender.utils import generate_cache_key
